@@ -5,6 +5,10 @@ import { CreateUserRequestDto } from '../../dto/create-user.request.dto';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
 import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
+import { CreateUserUseCaseInput } from '../../../application/usecases/create-user/dto/create-user.input.dto';
+import { CreateUserUseCaseOutput } from '../../../application/usecases/create-user/dto/create-user.output.dto';
+import { left, right } from '@/src/common/errors/either';
+import { Logger } from '@nestjs/common';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -35,7 +39,7 @@ describe('UsersController', () => {
   });
 
   it('should map request and return created user response', async () => {
-    const mappedInput = {
+    const mappedInput = new CreateUserUseCaseInput({
       name: createUserDto.name,
       email: createUserDto.email,
       nickname: createUserDto.nickname,
@@ -45,8 +49,8 @@ describe('UsersController', () => {
       phone: createUserDto.phone,
       status: createUserDto.status,
       userType: createUserDto.userType,
-    };
-    const useCaseOutput = {
+    });
+    const useCaseOutput = new CreateUserUseCaseOutput({
       id: 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
       name: createUserDto.name,
       email: createUserDto.email,
@@ -56,15 +60,12 @@ describe('UsersController', () => {
       phone: createUserDto.phone,
       status: createUserDto.status,
       userType: createUserDto.userType,
-    };
+    });
 
     jest
       .spyOn(UsersMapper, 'mapCreateUserRequestDtoToCreateUserUseCaseInput')
-      .mockReturnValue(mappedInput as any);
-    createUserUseCase.execute.mockResolvedValue({
-      isLeft: () => false,
-      value: useCaseOutput,
-    } as any);
+      .mockReturnValue(mappedInput);
+    createUserUseCase.execute.mockResolvedValue(right(useCaseOutput));
 
     const result = await controller.create(createUserDto);
 
@@ -76,19 +77,19 @@ describe('UsersController', () => {
   });
 
   it('should catch and log when use case returns left', async () => {
-    const mappedInput = { ...createUserDto };
+    const mappedInput = new CreateUserUseCaseInput({
+      ...createUserDto,
+    });
     const useCaseError = new Error('Email already registered');
+    const logger = Reflect.get(controller, 'logger') as Logger;
     const loggerErrorSpy = jest
-      .spyOn((controller as any).logger, 'error')
-      .mockImplementation();
+      .spyOn(logger, 'error')
+      .mockImplementation(() => undefined);
 
     jest
       .spyOn(UsersMapper, 'mapCreateUserRequestDtoToCreateUserUseCaseInput')
-      .mockReturnValue(mappedInput as any);
-    createUserUseCase.execute.mockResolvedValue({
-      isLeft: () => true,
-      value: useCaseError,
-    } as any);
+      .mockReturnValue(mappedInput);
+    createUserUseCase.execute.mockResolvedValue(left(useCaseError));
 
     const result = await controller.create(createUserDto);
 
@@ -97,15 +98,18 @@ describe('UsersController', () => {
   });
 
   it('should catch and log when use case throws unexpectedly', async () => {
-    const mappedInput = { ...createUserDto };
+    const mappedInput = new CreateUserUseCaseInput({
+      ...createUserDto,
+    });
     const unexpectedError = new Error('Unexpected failure');
+    const logger = Reflect.get(controller, 'logger') as Logger;
     const loggerErrorSpy = jest
-      .spyOn((controller as any).logger, 'error')
-      .mockImplementation();
+      .spyOn(logger, 'error')
+      .mockImplementation(() => undefined);
 
     jest
       .spyOn(UsersMapper, 'mapCreateUserRequestDtoToCreateUserUseCaseInput')
-      .mockReturnValue(mappedInput as any);
+      .mockReturnValue(mappedInput);
     createUserUseCase.execute.mockRejectedValue(unexpectedError);
 
     const result = await controller.create(createUserDto);
