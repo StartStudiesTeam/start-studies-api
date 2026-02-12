@@ -1,5 +1,5 @@
 export class User {
-  id?: string;
+  id: string;
   name: string;
   nickname: string;
   password: string;
@@ -7,4 +7,6 @@ export class User {
   dateOfBirth?: string;
   gender?: string;
   phone?: string;
+  status?: string;
+  userType: string;
 }
