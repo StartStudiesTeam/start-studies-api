@@ -40,48 +40,63 @@ describe('UsersMapper', () => {
 
   describe('mapUserToCreateUserUseCaseOutput', () => {
     it('should map persisted user to use case output with all optional fields', () => {
-      const user: User = {
-        id: 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
-        name: 'John Doe',
-        email: 'john@example.com',
-        nickname: 'johnny',
-        password: 'secret123',
-        dateOfBirth: '1995-04-23',
-        gender: UserGenderEnum.MALE,
-        phone: '+5511999999999',
-        status: UserStatusEnum.ACTIVE,
-        userType: UserTypeEnum.USER,
-      };
+      const user = User.create(
+        {
+          name: 'John Doe',
+          email: 'john@example.com',
+          nickname: 'johnny',
+          password: 'secret123',
+          dateOfBirth: '1995-04-23',
+          gender: UserGenderEnum.MALE,
+          phone: '+5511999999999',
+          status: UserStatusEnum.ACTIVE,
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
 
       const result = UsersMapper.mapUserToCreateUserUseCaseOutput(user);
 
       expect(result).toBeInstanceOf(CreateUserUseCaseOutput);
-      expect(result).toEqual({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        nickname: user.nickname,
-        dateOfBirth: user.dateOfBirth,
-        gender: user.gender,
-        phone: user.phone,
-        status: user.status,
-        userType: user.userType,
-      });
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          dateOfBirth: user.dateOfBirth as string,
+          gender: user.gender as UserGenderEnum,
+          phone: user.phone as string,
+          status: user.status as UserStatusEnum,
+          userType: user.userType as UserTypeEnum,
+        }),
+      );
     });
 
     it('should apply active status when user status is undefined', () => {
-      const user: User = {
-        id: 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
-        name: 'John Doe',
-        email: 'john@example.com',
-        nickname: 'johnny',
-        password: 'secret123',
-        userType: UserTypeEnum.USER,
-      };
+      const user = User.create(
+        {
+          name: 'John Doe',
+          email: 'john@example.com',
+          nickname: 'johnny',
+          password: 'secret123',
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
 
       const result = UsersMapper.mapUserToCreateUserUseCaseOutput(user);
 
       expect(result.status).toBe(UserStatusEnum.ACTIVE);
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          userType: user.userType,
+        }),
+      );
       expect(result).not.toHaveProperty('dateOfBirth');
       expect(result).not.toHaveProperty('gender');
       expect(result).not.toHaveProperty('phone');
