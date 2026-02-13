@@ -4,6 +4,9 @@ import { Either, left, right } from '@/src/common/errors/either';
 import { CreateUserUseCaseOutput } from './dto/create-user.output.dto';
 import { UserRepository } from '../../../domain/repositories/user-repository';
 import { UsersMapper } from '../../../infra/mappers/users.mapper';
+import { EmailAlreadyExistsError } from '../../../domain/errors/email-already-exists-error';
+import { NicknameAlreadyExistsError } from '../../../domain/errors/nickaname-already-exists-error';
+import { User } from '../../../domain/user';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -26,21 +29,27 @@ export class CreateUserUseCase {
       );
 
       const [userWithSameEmail, userWithSameNickname] = await Promise.all([
-        this.userRepository.findByEmail(input.email),
+        this.userRepository.findUniqueByEmail(input.email),
         this.userRepository.findByNickname(input.nickname),
       ]);
 
       if (userWithSameEmail) {
-        return left(new Error('Email already registered'));
+        return left(new EmailAlreadyExistsError());
       }
 
       if (userWithSameNickname) {
-        return left(new Error('Nickname already registered'));
+        return left(new NicknameAlreadyExistsError());
       }
 
-      const user = await this.userRepository.create({
+      const createUser = User.create({
         ...input,
       });
+
+      if (createUser.isLeft()) {
+        return left(createUser.value);
+      }
+
+      const user = await this.userRepository.create(createUser.value);
 
       const output = UsersMapper.mapUserToCreateUserUseCaseOutput(user);
       return right(output);

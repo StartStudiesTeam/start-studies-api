@@ -5,6 +5,8 @@ import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
 import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
 import { CreateUserUseCaseInput } from './dto/create-user.input.dto';
+import { EmailAlreadyExistsError } from '../../../domain/errors/email-already-exists-error';
+import { NicknameAlreadyExistsError } from '../../../domain/errors/nickaname-already-exists-error';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;
@@ -22,14 +24,16 @@ describe('CreateUserUseCase', () => {
     userType: UserTypeEnum.USER,
   };
 
-  const persistedUser: User = {
-    id: 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
-    ...input,
-  };
+  const persistedUser = User.create(
+    {
+      ...input,
+    },
+    'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+  ).value as User;
 
   beforeEach(() => {
     userRepository = {
-      findByEmail: jest.fn(),
+      findUniqueByEmail: jest.fn(),
       findByNickname: jest.fn(),
       create: jest.fn(),
     } as jest.Mocked<UserRepository>;
@@ -38,7 +42,7 @@ describe('CreateUserUseCase', () => {
   });
 
   it('should create a user successfully', async () => {
-    userRepository.findByEmail.mockResolvedValue(null);
+    userRepository.findUniqueByEmail.mockResolvedValue(null);
     userRepository.findByNickname.mockResolvedValue(null);
     userRepository.create.mockResolvedValue(persistedUser);
 
@@ -51,38 +55,56 @@ describe('CreateUserUseCase', () => {
       expect(result.value.nickname).toBe(persistedUser.nickname);
       expect(result.value.status).toBe(UserStatusEnum.ACTIVE);
     }
-    expect(userRepository.create).toHaveBeenCalledWith(input);
+    expect(userRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: input.name,
+        email: input.email,
+        nickname: input.nickname,
+        password: input.password,
+        dateOfBirth: input.dateOfBirth,
+        gender: input.gender,
+        phone: input.phone,
+        status: input.status,
+        userType: input.userType,
+      }),
+    );
   });
 
   it('should return left when email is already registered', async () => {
-    userRepository.findByEmail.mockResolvedValue(persistedUser);
+    userRepository.findUniqueByEmail.mockResolvedValue(persistedUser);
     userRepository.findByNickname.mockResolvedValue(null);
 
     const result = await useCase.execute(input);
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value.message).toBe('Email already registered');
+      expect(result.value).toBeInstanceOf(EmailAlreadyExistsError);
+      expect(result.value.message).toBe(
+        'A user with this email already exists',
+      );
     }
     expect(userRepository.create).not.toHaveBeenCalled();
   });
 
   it('should return left when nickname is already registered', async () => {
-    userRepository.findByEmail.mockResolvedValue(null);
+    userRepository.findUniqueByEmail.mockResolvedValue(null);
     userRepository.findByNickname.mockResolvedValue(persistedUser);
 
     const result = await useCase.execute(input);
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value.message).toBe('Nickname already registered');
+      expect(result.value).toBeInstanceOf(NicknameAlreadyExistsError);
+      expect(result.value.message).toBe(
+        'A user with this nickname already exists',
+      );
     }
     expect(userRepository.create).not.toHaveBeenCalled();
   });
 
   it('should return left with repository error', async () => {
     const repositoryError = new Error('Database unavailable');
-    userRepository.findByEmail.mockRejectedValue(repositoryError);
+    userRepository.findUniqueByEmail.mockRejectedValue(repositoryError);
 
     const result = await useCase.execute(input);
 
