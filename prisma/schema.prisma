@@ -11,7 +11,7 @@ model User {
   name        String
   email       String        @unique
   password    String
-  nickname    String
+  nickname    String        @unique
   dateOfBirth String? @map("date_of_birth")
   gender      String?
   phone       String?

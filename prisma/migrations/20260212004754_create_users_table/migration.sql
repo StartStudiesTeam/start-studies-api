@@ -18,3 +18,5 @@ CREATE TABLE "users" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX "users_nickname_key" ON "users"("nickname");
+CREATE INDEX "users_status_idx" ON "users"("status");
