@@ -28,14 +28,17 @@ export class CreateUserUseCase {
         `Checking existing users by email=${input.email} and nickname=${input.nickname}`,
       );
 
-      const [userWithSameEmail, userWithSameNickname] = await Promise.all([
-        this.userRepository.findUniqueByEmail(input.email),
-        this.userRepository.findByNickname(input.nickname),
-      ]);
+      const userWithSameEmail = await this.userRepository.findUniqueByEmail(
+        input.email,
+      );
 
       if (userWithSameEmail) {
         return left(new EmailAlreadyExistsError());
       }
+
+      const userWithSameNickname = await this.userRepository.findByNickname(
+        input.nickname,
+      );
 
       if (userWithSameNickname) {
         return left(new NicknameAlreadyExistsError());
