@@ -4,6 +4,7 @@ import { CreateUserUseCase } from './application/usecases/create-user/create-use
 import { DatabaseModule } from '@/src/infra/database/database.module';
 import { UserRepository } from './domain/repositories/user-repository';
 import { PrismaUserRepository } from '@/src/infra/database/prisma/users/prisma-user.repository';
+import { FetchUserUseCase } from './application/usecases/fetch-user/fetch-user.usecase';
 
 @Module({
   imports: [DatabaseModule],
@@ -14,6 +15,7 @@ import { PrismaUserRepository } from '@/src/infra/database/prisma/users/prisma-u
       provide: UserRepository,
       useClass: PrismaUserRepository,
     },
+    FetchUserUseCase,
   ],
 })
 export class UsersModule {}
