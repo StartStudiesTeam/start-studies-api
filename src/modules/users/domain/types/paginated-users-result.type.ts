@@ -1,6 +1,6 @@
 import { User } from '../user';
 
-export class SearchUsersOutputType {
+export class PaginatedUsersResult {
   total: number;
   users: User[];
 }

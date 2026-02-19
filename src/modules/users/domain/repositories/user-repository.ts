@@ -1,5 +1,5 @@
-import { SearchUsersInputType } from '../types/search-users.input.types';
-import { SearchUsersOutputType } from '../types/search-users.output.type';
+import { SearchUsersQuery } from '../types/search-users-query.type';
+import { PaginatedUsersResult } from '../types/paginated-users-result.type';
 import { User } from '../user';
 
 export abstract class UserRepository {
@@ -7,5 +7,7 @@ export abstract class UserRepository {
   abstract findById(id: string): Promise<User | null>;
   abstract findUniqueByEmail(email: string): Promise<User | null>;
   abstract findByNickname(nickname: string): Promise<User | null>;
-  abstract search(query: SearchUsersInputType): Promise<SearchUsersOutputType>;
+  abstract searchByFilters(
+    query: SearchUsersQuery,
+  ): Promise<PaginatedUsersResult>;
 }
