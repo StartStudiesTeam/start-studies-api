@@ -6,6 +6,18 @@ import { UserStatusEnum } from '../../domain/enums/user-status.enum';
 import { FetchUserUseCaseOutput } from '../../application/usecases/fetch-user/dto/fetch-user.output.dto';
 import { FetchUserUseCaseInput } from '../../application/usecases/fetch-user/dto/fetch-user.input.dto';
 import { FetchUserRequestDto } from '../dto/fetch-user.request.dto';
+import { SearchUsersRequestDto } from '../dto/search-users.request.dto';
+import {
+  SearchUsersItemResponseDto,
+  SearchUsersResponseDto,
+} from '../dto/search-users.response.dto';
+import { SearchUsersUseCaseInput } from '../../application/usecases/search-users/dto/search-users.input.dto';
+import {
+  SearchUsersOutputItem,
+  SearchUsersUseCaseOutput,
+} from '../../application/usecases/search-users/dto/search-users.output.dto';
+import { SearchUsersInputType } from '../../domain/types/search-users.input.types';
+import { SearchUsersOutputType } from '../../domain/types/search-users.output.type';
 
 export class UsersMapper {
   static mapCreateUserRequestDtoToCreateUserUseCaseInput(
@@ -72,5 +84,80 @@ export class UsersMapper {
         phone: user.phone,
       }),
     });
+  }
+
+  static mapSearchUsersRequestDtoToSearchUsersUseCaseInput(
+    dto: SearchUsersRequestDto,
+  ): SearchUsersUseCaseInput {
+    return {
+      filter: dto.filter,
+      limit: dto.limit,
+      offset: dto.offset,
+    };
+  }
+
+  static mapSearchUsersUseCaseInputToSearchUsersInputType(
+    input: SearchUsersUseCaseInput,
+  ): SearchUsersInputType {
+    return {
+      filter: input.filter,
+      limit: input.limit ?? 20,
+      offset: input.offset ?? 0,
+    };
+  }
+
+  static mapSearchUsersToOutput(
+    searchResult: SearchUsersOutputType,
+  ): SearchUsersUseCaseOutput {
+    const data = searchResult.users.map(
+      (user) =>
+        new SearchUsersOutputItem({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          userType: user.userType,
+          status: user.status,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          ...(user.dateOfBirth && {
+            dateOfBirth: user.dateOfBirth,
+          }),
+          ...(user.gender && {
+            gender: user.gender,
+          }),
+          ...(user.phone && {
+            phone: user.phone,
+          }),
+        }),
+    );
+
+    return new SearchUsersUseCaseOutput({
+      total: searchResult.total,
+      data,
+    });
+  }
+
+  static mapSearchUsersUseCaseOutputToSearchUsersResponseDto(
+    output: SearchUsersUseCaseOutput,
+  ): SearchUsersResponseDto {
+    return {
+      total: output.total,
+      data: output.data.map(
+        (user): SearchUsersItemResponseDto => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          dateOfBirth: user.dateOfBirth,
+          gender: user.gender,
+          phone: user.phone,
+          status: user.status,
+          userType: user.userType,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        }),
+      ),
+    };
   }
 }
