@@ -5,6 +5,7 @@ import { User } from '../../../domain/user';
 import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
 import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
+import { SearchUsersPersistenceError } from '../../../domain/errors/search-users-persistence-error';
 
 describe('SearchUsersUseCase', () => {
   let useCase: SearchUsersUseCase;
@@ -46,7 +47,7 @@ describe('SearchUsersUseCase', () => {
       findById: jest.fn(),
       findUniqueByEmail: jest.fn(),
       findByNickname: jest.fn(),
-      search: jest.fn(),
+      searchByFilters: jest.fn(),
     } as jest.Mocked<UserRepository>;
 
     useCase = new SearchUsersUseCase(userRepository);
@@ -59,7 +60,7 @@ describe('SearchUsersUseCase', () => {
       offset: 0,
     });
 
-    userRepository.search.mockResolvedValue({
+    userRepository.searchByFilters.mockResolvedValue({
       users: [firstUser, secondUser],
       total: 2,
     });
@@ -74,7 +75,7 @@ describe('SearchUsersUseCase', () => {
       expect(result.value.data[1].email).toBe(secondUser.email);
     }
 
-    expect(userRepository.search).toHaveBeenCalledWith({
+    expect(userRepository.searchByFilters).toHaveBeenCalledWith({
       filter: 'doe',
       limit: 10,
       offset: 0,
@@ -88,7 +89,7 @@ describe('SearchUsersUseCase', () => {
       offset: 0,
     });
 
-    userRepository.search.mockResolvedValue({
+    userRepository.searchByFilters.mockResolvedValue({
       users: [],
       total: 0,
     });
@@ -107,21 +108,21 @@ describe('SearchUsersUseCase', () => {
       filter: 'john',
     });
 
-    userRepository.search.mockResolvedValue({
+    userRepository.searchByFilters.mockResolvedValue({
       users: [firstUser],
       total: 1,
     });
 
     await useCase.execute(input);
 
-    expect(userRepository.search).toHaveBeenCalledWith({
+    expect(userRepository.searchByFilters).toHaveBeenCalledWith({
       filter: 'john',
       limit: 20,
       offset: 0,
     });
   });
 
-  it('should return left with repository error', async () => {
+  it('should return left with typed persistence error when repository fails', async () => {
     const input = new SearchUsersUseCaseInput({
       filter: 'john',
       limit: 20,
@@ -129,30 +130,35 @@ describe('SearchUsersUseCase', () => {
     });
     const repositoryError = new Error('Database unavailable');
 
-    userRepository.search.mockRejectedValue(repositoryError);
+    userRepository.searchByFilters.mockRejectedValue(repositoryError);
 
     const result = await useCase.execute(input);
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value).toBe(repositoryError);
+      expect(result.value).toBeInstanceOf(SearchUsersPersistenceError);
+      expect(result.value.message).toBe('Failed to search users');
     }
   });
 
-  it('should wrap non-error exceptions into a generic error', async () => {
+  it('should delegate negative offset to repository without validating in use case', async () => {
     const input = new SearchUsersUseCaseInput({
       filter: 'john',
       limit: 20,
-      offset: 0,
+      offset: -1,
     });
 
-    userRepository.search.mockRejectedValue('unexpected');
+    userRepository.searchByFilters.mockResolvedValue({
+      users: [firstUser],
+      total: 1,
+    });
 
-    const result = await useCase.execute(input);
+    await useCase.execute(input);
 
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value.message).toBe('Failed to search users');
-    }
+    expect(userRepository.searchByFilters).toHaveBeenCalledWith({
+      filter: 'john',
+      limit: 20,
+      offset: -1,
+    });
   });
 });

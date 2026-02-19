@@ -36,7 +36,7 @@ describe('FetchUserUseCase', () => {
       findById: jest.fn(),
       findUniqueByEmail: jest.fn(),
       findByNickname: jest.fn(),
-      search: jest.fn(),
+      searchByFilters: jest.fn(),
     } as jest.Mocked<UserRepository>;
 
     useCase = new FetchUserUseCase(userRepository);

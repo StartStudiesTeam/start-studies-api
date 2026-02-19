@@ -4,6 +4,7 @@ import { UserRepository } from '../../../domain/repositories/user-repository';
 import { SearchUsersUseCaseInput } from './dto/search-users.input.dto';
 import { UsersMapper } from '../../../infra/mappers/users.mapper';
 import { SearchUsersUseCaseOutput } from './dto/search-users.output.dto';
+import { SearchUsersPersistenceError } from '../../../domain/errors/search-users-persistence-error';
 
 @Injectable()
 export class SearchUsersUseCase {
@@ -14,36 +15,26 @@ export class SearchUsersUseCase {
 
   async execute(
     input: SearchUsersUseCaseInput,
-  ): Promise<Either<Error, SearchUsersUseCaseOutput>> {
-    this.logger.log(`Call ${SearchUsersUseCase.name}.execute method`);
-
+  ): Promise<Either<SearchUsersPersistenceError, SearchUsersUseCaseOutput>> {
     try {
-      this.logger.log(
-        `SearchUsersUseCaseInput received: ${JSON.stringify(input)}`,
-      );
+      this.logger.log(`Call ${SearchUsersUseCase.name}.execute method`);
 
-      const searchInputType =
-        UsersMapper.mapSearchUsersUseCaseInputToSearchUsersInputType(input);
+      const query = UsersMapper.mapToDomainQuery(input);
 
-      this.logger.log(
-        `Mapped input for repository search: ${JSON.stringify(searchInputType)}`,
-      );
-
-      const searchOutputType =
-        await this.userRepository.search(searchInputType);
+      const searchResult = await this.userRepository.searchByFilters(query);
 
       this.logger.log(
-        `Users retrieved from repository: count=${searchOutputType.users.length}, total=${searchOutputType.total}`,
+        `Users retrieved successfully: total=${searchResult.total}, count=${searchResult.users.length}`,
       );
 
-      const output = UsersMapper.mapSearchUsersToOutput(searchOutputType);
+      const output = UsersMapper.mapSearchUsersToOutput(searchResult);
 
       return right(output);
     } catch (error) {
-      const handledError =
-        error instanceof Error ? error : new Error('Failed to search users');
+      const handledError = new SearchUsersPersistenceError();
       this.logger.error(
-        `Error searching users: ${handledError.message} stack: ${handledError.stack}`,
+        `Error searching users: ${handledError.message}`,
+        error instanceof Error ? error.stack : undefined,
       );
       return left(handledError);
     }
