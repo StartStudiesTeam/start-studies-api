@@ -16,8 +16,8 @@ import {
   SearchUsersOutputItem,
   SearchUsersUseCaseOutput,
 } from '../../application/usecases/search-users/dto/search-users.output.dto';
-import { SearchUsersInputType } from '../../domain/types/search-users.input.types';
-import { SearchUsersOutputType } from '../../domain/types/search-users.output.type';
+import { SearchUsersQuery } from '../../domain/types/search-users-query.type';
+import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
 
 export class UsersMapper {
   static mapCreateUserRequestDtoToCreateUserUseCaseInput(
@@ -96,9 +96,7 @@ export class UsersMapper {
     };
   }
 
-  static mapSearchUsersUseCaseInputToSearchUsersInputType(
-    input: SearchUsersUseCaseInput,
-  ): SearchUsersInputType {
+  static mapToDomainQuery(input: SearchUsersUseCaseInput): SearchUsersQuery {
     return {
       filter: input.filter,
       limit: input.limit ?? 20,
@@ -107,7 +105,7 @@ export class UsersMapper {
   }
 
   static mapSearchUsersToOutput(
-    searchResult: SearchUsersOutputType,
+    searchResult: PaginatedUsersResult,
   ): SearchUsersUseCaseOutput {
     const data = searchResult.users.map(
       (user) =>

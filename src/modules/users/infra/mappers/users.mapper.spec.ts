@@ -12,7 +12,7 @@ import {
   SearchUsersOutputItem,
   SearchUsersUseCaseOutput,
 } from '../../application/usecases/search-users/dto/search-users.output.dto';
-import { SearchUsersOutputType } from '../../domain/types/search-users.output.type';
+import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
 
 describe('UsersMapper', () => {
   describe('mapCreateUserRequestDtoToCreateUserUseCaseInput', () => {
@@ -219,14 +219,13 @@ describe('UsersMapper', () => {
     });
   });
 
-  describe('mapSearchUsersUseCaseInputToSearchUsersInputType', () => {
+  describe('mapToDomainQuery', () => {
     it('should preserve filter, limit and offset when informed', () => {
-      const result =
-        UsersMapper.mapSearchUsersUseCaseInputToSearchUsersInputType({
-          filter: 'john',
-          limit: 15,
-          offset: 30,
-        });
+      const result = UsersMapper.mapToDomainQuery({
+        filter: 'john',
+        limit: 15,
+        offset: 30,
+      });
 
       expect(result).toEqual({
         filter: 'john',
@@ -235,14 +234,13 @@ describe('UsersMapper', () => {
       });
     });
 
-    it('should apply default limit and offset when values are undefined', () => {
-      const result =
-        UsersMapper.mapSearchUsersUseCaseInputToSearchUsersInputType({
-          filter: 'john',
-        });
+    it('should preserve filter and apply default pagination when values are undefined', () => {
+      const result = UsersMapper.mapToDomainQuery({
+        filter: ' john ',
+      });
 
       expect(result).toEqual({
-        filter: 'john',
+        filter: ' john ',
         limit: 20,
         offset: 0,
       });
@@ -282,7 +280,7 @@ describe('UsersMapper', () => {
         '9c4a0866-dc14-4c73-ac40-54de4f0a8b40',
       ).value as User;
 
-      const searchResult: SearchUsersOutputType = {
+      const searchResult: PaginatedUsersResult = {
         users: [firstUser, secondUser],
         total: 2,
       };

@@ -311,4 +311,27 @@ describe('UsersController', () => {
       ),
     ).rejects.toThrow();
   });
+
+  it('should reject negative pagination query params for search users', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'query',
+      metatype: SearchUsersRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          filter: 'john',
+          limit: '0',
+          offset: '-1',
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
 });
