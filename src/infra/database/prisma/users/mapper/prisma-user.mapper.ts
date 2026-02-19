@@ -42,4 +42,8 @@ export class PrismaUserMapper {
       updatedAt: entity.updatedAt ?? undefined,
     };
   }
+
+  static toEntityList(rawUsers: PrismaUser[]): User[] {
+    return rawUsers.map((rawUser) => PrismaUserMapper.toEntity(rawUser));
+  }
 }
