@@ -5,6 +5,7 @@ import { DatabaseModule } from '@/src/infra/database/database.module';
 import { UserRepository } from './domain/repositories/user-repository';
 import { PrismaUserRepository } from '@/src/infra/database/prisma/users/prisma-user.repository';
 import { FetchUserUseCase } from './application/usecases/fetch-user/fetch-user.usecase';
+import { SearchUsersUseCase } from './application/usecases/search-users/search-users.usecase';
 
 @Module({
   imports: [DatabaseModule],
@@ -16,6 +17,7 @@ import { FetchUserUseCase } from './application/usecases/fetch-user/fetch-user.u
       useClass: PrismaUserRepository,
     },
     FetchUserUseCase,
+    SearchUsersUseCase,
   ],
 })
 export class UsersModule {}
