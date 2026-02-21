@@ -3,6 +3,8 @@ import { UserRepository } from '@/src/modules/users/domain/repositories/user-rep
 import { PrismaService } from '../prisma.service';
 import { User } from '@/src/modules/users/domain/user';
 import { PrismaUserMapper } from './mapper/prisma-user.mapper';
+import { SearchUsersQuery } from '@/src/modules/users/domain/types/search-users-query.type';
+import { PaginatedUsersResult } from '@/src/modules/users/domain/types/paginated-users-result.type';
 
 @Injectable()
 export class PrismaUserRepository extends UserRepository {
@@ -46,5 +48,46 @@ export class PrismaUserRepository extends UserRepository {
     });
 
     return PrismaUserMapper.toEntity(createdUser);
+  }
+
+  async searchByFilters(
+    query: SearchUsersQuery,
+  ): Promise<PaginatedUsersResult> {
+    const normalizedFilter = query.filter?.trim();
+    const where = normalizedFilter
+      ? {
+          OR: [
+            {
+              name: {
+                contains: normalizedFilter,
+                mode: 'insensitive' as const,
+              },
+            },
+            {
+              nickname: {
+                contains: normalizedFilter,
+                mode: 'insensitive' as const,
+              },
+            },
+          ],
+        }
+      : undefined;
+
+    const [users, total] = await this.prismaService.$transaction([
+      this.prismaService.user.findMany({
+        where,
+        take: query.limit,
+        skip: query.offset,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prismaService.user.count({ where }),
+    ]);
+
+    return {
+      users: PrismaUserMapper.toEntityList(users),
+      total,
+    };
   }
 }
