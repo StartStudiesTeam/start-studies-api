@@ -37,6 +37,7 @@ describe('CreateUserUseCase', () => {
       findByNickname: jest.fn(),
       findById: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
       searchByFilters: jest.fn(),
     } as jest.Mocked<UserRepository>;
 

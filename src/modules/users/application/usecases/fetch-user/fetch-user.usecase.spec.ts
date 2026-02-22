@@ -33,6 +33,7 @@ describe('FetchUserUseCase', () => {
   beforeEach(() => {
     userRepository = {
       create: jest.fn(),
+      update: jest.fn(),
       findById: jest.fn(),
       findUniqueByEmail: jest.fn(),
       findByNickname: jest.fn(),
