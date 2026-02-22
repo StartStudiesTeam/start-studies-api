@@ -5,6 +5,8 @@ import {
   HttpStatus,
   Logger,
   Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -19,6 +21,9 @@ import { FetchUserResponseDto } from '../../dto/fetch-user.response.dto';
 import { SearchUsersRequestDto } from '../../dto/search-users.request.dto';
 import { SearchUsersUseCase } from '../../../application/usecases/search-users/search-users.usecase';
 import { SearchUsersResponseDto } from '../../dto/search-users.response.dto';
+import { UpdateUserUseCase } from '../../../application/usecases/update-user/update-user.usecase';
+import { UpdateUserRequestDto } from '../../dto/update-user.request.dto';
+import { UpdateUserResponseDto } from '../../dto/update-user.response.dto';
 
 @ApiTags('Users')
 @Controller('/users')
@@ -29,6 +34,7 @@ export class UsersController {
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly fetchUserUseCase: FetchUserUseCase,
     private readonly searchUsersUseCase: SearchUsersUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -173,6 +179,59 @@ export class UsersController {
         error instanceof Error ? error : new Error('Failed to search users');
       this.logger.error(
         `Error searching users: ${handledError.message} stack: ${handledError.stack}`,
+      );
+      throw handledError;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Update a user',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: UpdateUserResponseDto,
+    description: 'User updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid request data',
+  })
+  @Patch(':id')
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateUserDto: UpdateUserRequestDto,
+  ): Promise<UpdateUserResponseDto> {
+    this.logger.log(`Call ${UsersController.name}.update method`);
+    try {
+      this.logger.log(
+        `UpdateUserRequestDto received with id=${id} and body=${JSON.stringify(updateUserDto)}`,
+      );
+
+      const input = UsersMapper.mapUpdateRequestToUpdateUserUseCaseInput(
+        id,
+        updateUserDto,
+      );
+
+      this.logger.log(`Mapped input for use case ${JSON.stringify(input)}`);
+
+      const result = await this.updateUserUseCase.execute(input);
+
+      if (result.isLeft()) {
+        throw result.value;
+      }
+
+      this.logger.log(`User updated successfully - ${result.value.id}`);
+
+      return result.value;
+    } catch (error) {
+      const handledError =
+        error instanceof Error ? error : new Error('Failed to update user');
+      this.logger.error(
+        `Error updating user: ${handledError.message} stack: ${handledError.stack}`,
       );
       throw handledError;
     }

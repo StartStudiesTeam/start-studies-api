@@ -90,4 +90,15 @@ export class PrismaUserRepository extends UserRepository {
       total,
     };
   }
+
+  async update(input: User): Promise<User> {
+    const updatedUser = await this.prismaService.user.update({
+      where: {
+        id: input.id,
+      },
+      data: PrismaUserMapper.toPrisma(input),
+    });
+
+    return PrismaUserMapper.toEntity(updatedUser);
+  }
 }
