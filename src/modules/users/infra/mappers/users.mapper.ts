@@ -7,6 +7,7 @@ import { FetchUserUseCaseOutput } from '../../application/usecases/fetch-user/dt
 import { FetchUserUseCaseInput } from '../../application/usecases/fetch-user/dto/fetch-user.input.dto';
 import { FetchUserRequestDto } from '../dto/fetch-user.request.dto';
 import { SearchUsersRequestDto } from '../dto/search-users.request.dto';
+import { UpdateUserRequestDto } from '../dto/update-user.request.dto';
 import {
   SearchUsersItemResponseDto,
   SearchUsersResponseDto,
@@ -16,6 +17,8 @@ import {
   SearchUsersOutputItem,
   SearchUsersUseCaseOutput,
 } from '../../application/usecases/search-users/dto/search-users.output.dto';
+import { UpdateUserUseCaseOutput } from '../../application/usecases/update-user/dto/update-user.output.dto';
+import { UpdateUserUseCaseInput } from '../../application/usecases/update-user/dto/update-user.input.dto';
 import { SearchUsersQuery } from '../../domain/types/search-users-query.type';
 import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
 
@@ -38,6 +41,57 @@ export class UsersMapper {
 
   static mapUserToCreateUserUseCaseOutput(user: User): CreateUserUseCaseOutput {
     return new CreateUserUseCaseOutput({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      nickname: user.nickname,
+      userType: user.userType,
+      status: user.status ?? UserStatusEnum.ACTIVE,
+      ...(user.dateOfBirth && {
+        dateOfBirth: user.dateOfBirth,
+      }),
+      ...(user.gender && {
+        gender: user.gender,
+      }),
+      ...(user.phone && {
+        phone: user.phone,
+      }),
+    });
+  }
+
+  static mapUpdateUserInputToUser(
+    existingUser: User,
+    newUser: UpdateUserUseCaseInput,
+  ): User {
+    const fieldsToUpdate = {
+      ...(newUser.name !== undefined && { name: newUser.name }),
+      ...(newUser.email !== undefined && { email: newUser.email }),
+      ...(newUser.nickname !== undefined && { nickname: newUser.nickname }),
+      ...(newUser.gender !== undefined && { gender: newUser.gender }),
+      ...(newUser.phone !== undefined && { phone: newUser.phone }),
+    };
+
+    Object.assign(existingUser, fieldsToUpdate);
+
+    return existingUser;
+  }
+
+  static mapUpdateRequestToUpdateUserUseCaseInput(
+    id: string,
+    body: UpdateUserRequestDto,
+  ): UpdateUserUseCaseInput {
+    return new UpdateUserUseCaseInput({
+      id,
+      name: body.name,
+      email: body.email,
+      nickname: body.nickname,
+      gender: body.gender,
+      phone: body.phone,
+    });
+  }
+
+  static mapUserToUpdateUserUseCaseOutput(user: User): UpdateUserUseCaseOutput {
+    return new UpdateUserUseCaseOutput({
       id: user.id,
       name: user.name,
       email: user.email,

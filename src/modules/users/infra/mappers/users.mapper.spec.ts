@@ -7,7 +7,10 @@ import { UserTypeEnum } from '../../domain/enums/user-type.enum';
 import { CreateUserUseCaseOutput } from '../../application/usecases/create-user/dto/create-user.output.dto';
 import { FetchUserRequestDto } from '../dto/fetch-user.request.dto';
 import { FetchUserUseCaseOutput } from '../../application/usecases/fetch-user/dto/fetch-user.output.dto';
+import { UpdateUserUseCaseOutput } from '../../application/usecases/update-user/dto/update-user.output.dto';
+import { UpdateUserUseCaseInput } from '../../application/usecases/update-user/dto/update-user.input.dto';
 import { SearchUsersRequestDto } from '../dto/search-users.request.dto';
+import { UpdateUserRequestDto } from '../dto/update-user.request.dto';
 import {
   SearchUsersOutputItem,
   SearchUsersUseCaseOutput,
@@ -126,6 +129,136 @@ describe('UsersMapper', () => {
     });
   });
 
+  describe('mapUserToUpdateUserUseCaseOutput', () => {
+    it('should map persisted user to update output with all optional fields', () => {
+      const user = User.create(
+        {
+          name: 'John Doe',
+          email: 'john@example.com',
+          nickname: 'johnny',
+          password: 'secret123',
+          dateOfBirth: '1995-04-23',
+          gender: UserGenderEnum.MALE,
+          phone: '+5511999999999',
+          status: UserStatusEnum.ACTIVE,
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
+
+      const result = UsersMapper.mapUserToUpdateUserUseCaseOutput(user);
+
+      expect(result).toBeInstanceOf(UpdateUserUseCaseOutput);
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          dateOfBirth: user.dateOfBirth as string,
+          gender: user.gender as UserGenderEnum,
+          phone: user.phone as string,
+          status: user.status as UserStatusEnum,
+          userType: user.userType as UserTypeEnum,
+        }),
+      );
+    });
+
+    it('should apply active status when user status is undefined', () => {
+      const user = User.create(
+        {
+          name: 'John Doe',
+          email: 'john@example.com',
+          nickname: 'johnny',
+          password: 'secret123',
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
+
+      const result = UsersMapper.mapUserToUpdateUserUseCaseOutput(user);
+
+      expect(result).toBeInstanceOf(UpdateUserUseCaseOutput);
+      expect(result.status).toBe(UserStatusEnum.ACTIVE);
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          userType: user.userType,
+        }),
+      );
+      expect(result).not.toHaveProperty('dateOfBirth');
+      expect(result).not.toHaveProperty('gender');
+      expect(result).not.toHaveProperty('phone');
+    });
+  });
+
+  describe('mapUpdateUserInputToUser', () => {
+    it('should update user fields when new values are informed', () => {
+      const user = User.create(
+        {
+          name: 'Old Name',
+          email: 'old@example.com',
+          nickname: 'oldnick',
+          password: 'secret123',
+          gender: UserGenderEnum.MALE,
+          phone: '+5511999991111',
+          status: UserStatusEnum.ACTIVE,
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
+
+      const input = new UpdateUserUseCaseInput({
+        id: user.id,
+        name: 'New Name',
+        email: 'new@example.com',
+        nickname: 'newnick',
+        gender: UserGenderEnum.FEMALE,
+        phone: '+5511999992222',
+      });
+
+      const result = UsersMapper.mapUpdateUserInputToUser(user, input);
+
+      expect(result).toBe(user);
+      expect(result.name).toBe('New Name');
+      expect(result.email).toBe('new@example.com');
+      expect(result.nickname).toBe('newnick');
+      expect(result.gender).toBe(UserGenderEnum.FEMALE);
+      expect(result.phone).toBe('+5511999992222');
+    });
+
+    it('should keep persisted values when fields are not informed', () => {
+      const user = User.create(
+        {
+          name: 'Old Name',
+          email: 'old@example.com',
+          nickname: 'oldnick',
+          password: 'secret123',
+          gender: UserGenderEnum.MALE,
+          phone: '+5511999991111',
+          status: UserStatusEnum.ACTIVE,
+          userType: UserTypeEnum.USER,
+        },
+        'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
+      ).value as User;
+
+      const input = new UpdateUserUseCaseInput({
+        id: user.id,
+      });
+
+      const result = UsersMapper.mapUpdateUserInputToUser(user, input);
+
+      expect(result.name).toBe('Old Name');
+      expect(result.email).toBe('old@example.com');
+      expect(result.nickname).toBe('oldnick');
+      expect(result.gender).toBe(UserGenderEnum.MALE);
+      expect(result.phone).toBe('+5511999991111');
+    });
+  });
+
   describe('mapUserToFetchUserUseCaseOutput', () => {
     it('should map persisted user to fetch output with all optional fields', () => {
       const user = User.create(
@@ -197,6 +330,35 @@ describe('UsersMapper', () => {
       expect(result).not.toHaveProperty('dateOfBirth');
       expect(result).not.toHaveProperty('gender');
       expect(result).not.toHaveProperty('phone');
+    });
+  });
+
+  describe('mapUpdateRequestToUpdateUserUseCaseInput', () => {
+    it('should merge params id and body fields into update use case input', () => {
+      const id = 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa';
+
+      const body: UpdateUserRequestDto = {
+        name: 'John New',
+        email: 'john.new@example.com',
+        nickname: 'johnnynew',
+        gender: UserGenderEnum.MALE,
+        phone: '+5511888888888',
+      };
+
+      const result = UsersMapper.mapUpdateRequestToUpdateUserUseCaseInput(
+        id,
+        body,
+      );
+
+      expect(result).toBeInstanceOf(UpdateUserUseCaseInput);
+      expect(result).toEqual({
+        id,
+        name: body.name,
+        email: body.email,
+        nickname: body.nickname,
+        gender: body.gender,
+        phone: body.phone,
+      });
     });
   });
 
