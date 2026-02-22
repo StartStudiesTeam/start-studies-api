@@ -11,12 +11,16 @@ import {
   SearchUsersOutputItem,
   SearchUsersUseCaseOutput,
 } from '../../../application/usecases/search-users/dto/search-users.output.dto';
+import { UpdateUserUseCase } from '../../../application/usecases/update-user/update-user.usecase';
+import { UpdateUserUseCaseInput } from '../../../application/usecases/update-user/dto/update-user.input.dto';
+import { UpdateUserUseCaseOutput } from '../../../application/usecases/update-user/dto/update-user.output.dto';
 import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
 import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
 import { CreateUserRequestDto } from '../../dto/create-user.request.dto';
 import { FetchUserRequestDto } from '../../dto/fetch-user.request.dto';
 import { SearchUsersRequestDto } from '../../dto/search-users.request.dto';
+import { UpdateUserRequestDto } from '../../dto/update-user.request.dto';
 import { UsersMapper } from '../../mappers/users.mapper';
 import { UsersController } from './users.controller';
 
@@ -25,6 +29,7 @@ describe('UsersController', () => {
   let createUserUseCase: jest.Mocked<CreateUserUseCase>;
   let fetchUserUseCase: jest.Mocked<FetchUserUseCase>;
   let searchUsersUseCase: jest.Mocked<SearchUsersUseCase>;
+  let updateUserUseCase: jest.Mocked<UpdateUserUseCase>;
 
   const createUserDto: CreateUserRequestDto = {
     name: 'John Doe',
@@ -47,6 +52,15 @@ describe('UsersController', () => {
     limit: 10,
     offset: 0,
   };
+  const updateUserId = 'a85f30f9-5b8f-4eb5-b4ec-2c0d404e0b8f';
+
+  const updateUserDto: UpdateUserRequestDto = {
+    name: 'John Updated',
+    email: 'john.updated@example.com',
+    nickname: 'johnny-updated',
+    phone: '+5511888888888',
+    gender: UserGenderEnum.MALE,
+  };
 
   beforeEach(() => {
     createUserUseCase = {
@@ -61,10 +75,15 @@ describe('UsersController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<SearchUsersUseCase>;
 
+    updateUserUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<UpdateUserUseCase>;
+
     controller = new UsersController(
       createUserUseCase,
       fetchUserUseCase,
       searchUsersUseCase,
+      updateUserUseCase,
     );
   });
 
@@ -333,5 +352,40 @@ describe('UsersController', () => {
         metadata,
       ),
     ).rejects.toThrow();
+  });
+
+  it('should merge params and body then return updated user response', async () => {
+    const mappedInput = new UpdateUserUseCaseInput({
+      id: updateUserId,
+      name: updateUserDto.name,
+      email: updateUserDto.email,
+      nickname: updateUserDto.nickname,
+      gender: updateUserDto.gender,
+      phone: updateUserDto.phone,
+    });
+
+    const useCaseOutput = new UpdateUserUseCaseOutput({
+      id: updateUserId,
+      name: 'John Updated',
+      email: 'john.updated@example.com',
+      nickname: 'johnny-updated',
+      status: UserStatusEnum.ACTIVE,
+      userType: UserTypeEnum.USER,
+      gender: UserGenderEnum.MALE,
+      phone: '+5511888888888',
+    });
+
+    jest
+      .spyOn(UsersMapper, 'mapUpdateRequestToUpdateUserUseCaseInput')
+      .mockReturnValue(mappedInput);
+    updateUserUseCase.execute.mockResolvedValue(right(useCaseOutput));
+
+    const result = await controller.update(updateUserId, updateUserDto);
+
+    expect(
+      UsersMapper.mapUpdateRequestToUpdateUserUseCaseInput,
+    ).toHaveBeenCalledWith(updateUserId, updateUserDto);
+    expect(updateUserUseCase.execute).toHaveBeenCalledWith(mappedInput);
+    expect(result).toEqual(useCaseOutput);
   });
 });
