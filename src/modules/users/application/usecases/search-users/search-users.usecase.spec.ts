@@ -48,6 +48,7 @@ describe('SearchUsersUseCase', () => {
       findById: jest.fn(),
       findUniqueByEmail: jest.fn(),
       findByNickname: jest.fn(),
+      delete: jest.fn(),
       searchByFilters: jest.fn(),
     } as jest.Mocked<UserRepository>;
 
