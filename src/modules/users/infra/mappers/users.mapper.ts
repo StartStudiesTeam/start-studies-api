@@ -21,6 +21,7 @@ import { UpdateUserUseCaseOutput } from '../../application/usecases/update-user/
 import { UpdateUserUseCaseInput } from '../../application/usecases/update-user/dto/update-user.input.dto';
 import { SearchUsersQuery } from '../../domain/types/search-users-query.type';
 import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
+import { DeleteUserUseCaseInput } from '../../application/usecases/delete-user/dto/delete-user.input.dto';
 
 export class UsersMapper {
   static mapCreateUserRequestDtoToCreateUserUseCaseInput(
@@ -116,6 +117,14 @@ export class UsersMapper {
     return {
       id: dto.id,
     };
+  }
+
+  static mapDeleteUserIdToDeleteUserUseCaseInput(
+    id: string,
+  ): DeleteUserUseCaseInput {
+    return new DeleteUserUseCaseInput({
+      id,
+    });
   }
 
   static mapUserToFetchUserUseCaseOutput(user: User): FetchUserUseCaseOutput {

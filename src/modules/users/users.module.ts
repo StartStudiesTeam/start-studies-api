@@ -7,6 +7,7 @@ import { PrismaUserRepository } from '@/src/infra/database/prisma/users/prisma-u
 import { FetchUserUseCase } from './application/usecases/fetch-user/fetch-user.usecase';
 import { SearchUsersUseCase } from './application/usecases/search-users/search-users.usecase';
 import { UpdateUserUseCase } from './application/usecases/update-user/update-user.usecase';
+import { DeleteUserUseCase } from './application/usecases/delete-user/delete-user.usecase';
 
 @Module({
   imports: [DatabaseModule],
@@ -20,6 +21,7 @@ import { UpdateUserUseCase } from './application/usecases/update-user/update-use
     FetchUserUseCase,
     SearchUsersUseCase,
     UpdateUserUseCase,
+    DeleteUserUseCase,
   ],
 })
 export class UsersModule {}

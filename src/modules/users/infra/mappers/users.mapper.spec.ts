@@ -16,6 +16,7 @@ import {
   SearchUsersUseCaseOutput,
 } from '../../application/usecases/search-users/dto/search-users.output.dto';
 import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
+import { DeleteUserUseCaseInput } from '../../application/usecases/delete-user/dto/delete-user.input.dto';
 
 describe('UsersMapper', () => {
   describe('mapCreateUserRequestDtoToCreateUserUseCaseInput', () => {
@@ -126,6 +127,17 @@ describe('UsersMapper', () => {
       expect(result).toEqual({
         id: dto.id,
       });
+    });
+  });
+
+  describe('mapDeleteUserIdToDeleteUserUseCaseInput', () => {
+    it('should map id to delete use case input', () => {
+      const id = 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa';
+
+      const result = UsersMapper.mapDeleteUserIdToDeleteUserUseCaseInput(id);
+
+      expect(result).toBeInstanceOf(DeleteUserUseCaseInput);
+      expect(result).toEqual({ id });
     });
   });
 
