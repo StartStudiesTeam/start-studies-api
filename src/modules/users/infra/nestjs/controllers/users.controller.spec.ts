@@ -14,6 +14,8 @@ import {
 import { UpdateUserUseCase } from '../../../application/usecases/update-user/update-user.usecase';
 import { UpdateUserUseCaseInput } from '../../../application/usecases/update-user/dto/update-user.input.dto';
 import { UpdateUserUseCaseOutput } from '../../../application/usecases/update-user/dto/update-user.output.dto';
+import { DeleteUserUseCase } from '../../../application/usecases/delete-user/delete-user.usecase';
+import { DeleteUserUseCaseInput } from '../../../application/usecases/delete-user/dto/delete-user.input.dto';
 import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
 import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
@@ -30,6 +32,7 @@ describe('UsersController', () => {
   let fetchUserUseCase: jest.Mocked<FetchUserUseCase>;
   let searchUsersUseCase: jest.Mocked<SearchUsersUseCase>;
   let updateUserUseCase: jest.Mocked<UpdateUserUseCase>;
+  let deleteUserUseCase: jest.Mocked<DeleteUserUseCase>;
 
   const createUserDto: CreateUserRequestDto = {
     name: 'John Doe',
@@ -79,11 +82,16 @@ describe('UsersController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<UpdateUserUseCase>;
 
+    deleteUserUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<DeleteUserUseCase>;
+
     controller = new UsersController(
       createUserUseCase,
       fetchUserUseCase,
       searchUsersUseCase,
       updateUserUseCase,
+      deleteUserUseCase,
     );
   });
 
@@ -387,5 +395,39 @@ describe('UsersController', () => {
     ).toHaveBeenCalledWith(updateUserId, updateUserDto);
     expect(updateUserUseCase.execute).toHaveBeenCalledWith(mappedInput);
     expect(result).toEqual(useCaseOutput);
+  });
+
+  it('should call delete use case with id and return void', async () => {
+    const deleteUserId = '79a62de6-c88a-4d91-a522-4f71272c3cd9';
+    const mappedInput = new DeleteUserUseCaseInput({ id: deleteUserId });
+
+    jest
+      .spyOn(UsersMapper, 'mapDeleteUserIdToDeleteUserUseCaseInput')
+      .mockReturnValue(mappedInput);
+    deleteUserUseCase.execute.mockResolvedValue(right(undefined));
+
+    const result = await controller.delete(deleteUserId);
+
+    expect(
+      UsersMapper.mapDeleteUserIdToDeleteUserUseCaseInput,
+    ).toHaveBeenCalledWith(deleteUserId);
+    expect(deleteUserUseCase.execute).toHaveBeenCalledWith(mappedInput);
+    expect(result).toBeUndefined();
+  });
+
+  it('should throw and log when delete use case returns left', async () => {
+    const deleteUserId = '79a62de6-c88a-4d91-a522-4f71272c3cd9';
+    const useCaseError = new Error('User not found');
+    const logger = Reflect.get(controller, 'logger') as Logger;
+    const loggerErrorSpy = jest
+      .spyOn(logger, 'error')
+      .mockImplementation(() => undefined);
+
+    deleteUserUseCase.execute.mockResolvedValue(left(useCaseError));
+
+    await expect(controller.delete(deleteUserId)).rejects.toBe(useCaseError);
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Error deleting user'),
+    );
   });
 });

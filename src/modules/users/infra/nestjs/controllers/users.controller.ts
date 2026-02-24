@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Logger,
   Param,
@@ -24,6 +26,7 @@ import { SearchUsersResponseDto } from '../../dto/search-users.response.dto';
 import { UpdateUserUseCase } from '../../../application/usecases/update-user/update-user.usecase';
 import { UpdateUserRequestDto } from '../../dto/update-user.request.dto';
 import { UpdateUserResponseDto } from '../../dto/update-user.response.dto';
+import { DeleteUserUseCase } from '../../../application/usecases/delete-user/delete-user.usecase';
 
 @ApiTags('Users')
 @Controller('/users')
@@ -35,6 +38,7 @@ export class UsersController {
     private readonly fetchUserUseCase: FetchUserUseCase,
     private readonly searchUsersUseCase: SearchUsersUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly deleteUserUseCase: DeleteUserUseCase,
   ) {
     this.logger = new Logger(UsersController.name);
   }
@@ -232,6 +236,53 @@ export class UsersController {
         error instanceof Error ? error : new Error('Failed to update user');
       this.logger.error(
         `Error updating user: ${handledError.message} stack: ${handledError.stack}`,
+      );
+      throw handledError;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Delete a user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'User deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'User not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'User already deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid request data',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+    this.logger.log(`Call ${UsersController.name}.delete method`);
+    try {
+      this.logger.log(`Delete user request received with id=${id}`);
+
+      const input = UsersMapper.mapDeleteUserIdToDeleteUserUseCaseInput(id);
+
+      this.logger.log(`Mapped input for use case ${JSON.stringify(input)}`);
+
+      const result = await this.deleteUserUseCase.execute(input);
+
+      if (result.isLeft()) {
+        throw result.value;
+      }
+
+      this.logger.log(`User deleted successfully - ${id}`);
+    } catch (error) {
+      const handledError =
+        error instanceof Error ? error : new Error('Failed to delete user');
+      this.logger.error(
+        `Error deleting user: ${handledError.message} stack: ${handledError.stack}`,
       );
       throw handledError;
     }
