@@ -1,31 +1,41 @@
-import { FetchUserUseCase } from './fetch-user.usecase';
+import { DeleteUserUseCase } from './delete-user.usecase';
 import { UserRepository } from '../../../domain/repositories/user-repository';
+import { DeleteUserUseCaseInput } from './dto/delete-user.input.dto';
+import { UserNotFoundError } from '../../../domain/errors/user-not-found-error';
+import { UserNotAvailableError } from '../../../domain/errors/user-not-available-error';
 import { User } from '../../../domain/user';
 import { UserStatusEnum } from '../../../domain/enums/user-status.enum';
 import { UserTypeEnum } from '../../../domain/enums/user-type.enum';
-import { UserGenderEnum } from '../../../domain/enums/user-gender.enum';
-import { FetchUserUseCaseInput } from './dto/fetch-user.input.dto';
-import { UserNotFoundError } from '../../../domain/errors/user-not-found-error';
 
-describe('FetchUserUseCase', () => {
-  let useCase: FetchUserUseCase;
+describe('DeleteUserUseCase', () => {
+  let useCase: DeleteUserUseCase;
   let userRepository: jest.Mocked<UserRepository>;
 
-  const input = new FetchUserUseCaseInput({
+  const input = new DeleteUserUseCaseInput({
     id: 'd0fd623b-d048-47f0-bdde-8c32bac4c6aa',
   });
 
-  const persistedUser = User.create(
+  const existingUser = User.create(
     {
       name: 'John Doe',
       email: 'john@example.com',
       nickname: 'johnny',
       password: 'secret123',
-      dateOfBirth: '1995-04-23',
-      gender: UserGenderEnum.MALE,
-      phone: '+5511999999999',
       status: UserStatusEnum.ACTIVE,
       userType: UserTypeEnum.USER,
+    },
+    input.id,
+  ).value as User;
+
+  const deletedUser = User.create(
+    {
+      name: 'John Doe',
+      email: 'john@example.com',
+      nickname: 'johnny',
+      password: 'secret123',
+      status: UserStatusEnum.INACTIVE,
+      userType: UserTypeEnum.USER,
+      deletedAt: new Date('2026-02-20T00:00:00.000Z'),
     },
     input.id,
   ).value as User;
@@ -41,22 +51,21 @@ describe('FetchUserUseCase', () => {
       searchByFilters: jest.fn(),
     } as jest.Mocked<UserRepository>;
 
-    useCase = new FetchUserUseCase(userRepository);
+    useCase = new DeleteUserUseCase(userRepository);
   });
 
-  it('should fetch a user successfully', async () => {
-    userRepository.findById.mockResolvedValue(persistedUser);
+  it('should delete user successfully', async () => {
+    userRepository.findById.mockResolvedValue(existingUser);
+    userRepository.delete.mockResolvedValue(undefined);
 
     const result = await useCase.execute(input);
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.id).toBe(persistedUser.id);
-      expect(result.value.email).toBe(persistedUser.email);
-      expect(result.value.nickname).toBe(persistedUser.nickname);
-      expect(result.value.status).toBe(persistedUser.status);
+      expect(result.value).toBeUndefined();
     }
     expect(userRepository.findById).toHaveBeenCalledWith(input.id);
+    expect(userRepository.delete).toHaveBeenCalledWith(input.id);
   });
 
   it('should return left when user does not exist', async () => {
@@ -69,12 +78,13 @@ describe('FetchUserUseCase', () => {
       expect(result.value).toBeInstanceOf(UserNotFoundError);
       expect(result.value.message).toBe('User not found');
     }
-    expect(userRepository.findById).toHaveBeenCalledWith(input.id);
+    expect(userRepository.delete).not.toHaveBeenCalled();
   });
 
   it('should return left with repository error', async () => {
     const repositoryError = new Error('Database unavailable');
-    userRepository.findById.mockRejectedValue(repositoryError);
+    userRepository.findById.mockResolvedValue(existingUser);
+    userRepository.delete.mockRejectedValue(repositoryError);
 
     const result = await useCase.execute(input);
 
@@ -82,5 +92,18 @@ describe('FetchUserUseCase', () => {
     if (result.isLeft()) {
       expect(result.value).toBe(repositoryError);
     }
+  });
+
+  it('should return left when user is already deleted', async () => {
+    userRepository.findById.mockResolvedValue(deletedUser);
+
+    const result = await useCase.execute(input);
+
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(UserNotAvailableError);
+      expect(result.value.message).toBe('User already deleted');
+    }
+    expect(userRepository.delete).not.toHaveBeenCalled();
   });
 });

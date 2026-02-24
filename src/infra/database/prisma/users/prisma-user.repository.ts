@@ -5,6 +5,7 @@ import { User } from '@/src/modules/users/domain/user';
 import { PrismaUserMapper } from './mapper/prisma-user.mapper';
 import { SearchUsersQuery } from '@/src/modules/users/domain/types/search-users-query.type';
 import { PaginatedUsersResult } from '@/src/modules/users/domain/types/paginated-users-result.type';
+import { UserStatusEnum } from '@/src/modules/users/domain/enums/user-status.enum';
 
 @Injectable()
 export class PrismaUserRepository extends UserRepository {
@@ -100,5 +101,15 @@ export class PrismaUserRepository extends UserRepository {
     });
 
     return PrismaUserMapper.toEntity(updatedUser);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prismaService.user.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        status: UserStatusEnum.INACTIVE,
+      },
+    });
   }
 }
