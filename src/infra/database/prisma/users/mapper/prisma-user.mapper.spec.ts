@@ -16,6 +16,7 @@ describe('PrismaUserMapper', () => {
     userType: 'user',
     createdAt: new Date('2026-02-15T10:12:40.000Z'),
     updatedAt: new Date('2026-02-15T11:45:10.000Z'),
+    deletedAt: new Date('2026-02-20T08:00:00.000Z'),
     ...overrides,
   });
 

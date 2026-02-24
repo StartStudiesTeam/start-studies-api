@@ -16,6 +16,7 @@ export class PrismaUserMapper {
         userType: raw.userType,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
+        deletedAt: raw.deletedAt,
       },
       raw.id,
     );
@@ -40,6 +41,7 @@ export class PrismaUserMapper {
       userType: entity.userType,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt ?? undefined,
+      deletedAt: entity.deletedAt ?? undefined,
     };
   }
 
