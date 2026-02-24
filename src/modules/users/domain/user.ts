@@ -15,6 +15,7 @@ export interface UserProps {
   userType: string;
   createdAt: Date;
   updatedAt?: Date | null;
+  deletedAt?: Date | null;
 }
 
 export class User extends Entity<UserProps> {
@@ -25,7 +26,13 @@ export class User extends Entity<UserProps> {
   static create(
     props: Optional<
       UserProps,
-      'dateOfBirth' | 'gender' | 'phone' | 'status' | 'createdAt' | 'updatedAt'
+      | 'dateOfBirth'
+      | 'gender'
+      | 'phone'
+      | 'status'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'deletedAt'
     >,
     id?: string,
   ): Either<InvalidUserError, User> {
@@ -47,6 +54,7 @@ export class User extends Entity<UserProps> {
       status: props.status ?? null,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? null,
+      deletedAt: props.deletedAt ?? null,
     };
 
     const user = new User(userProps, id);
@@ -140,6 +148,15 @@ export class User extends Entity<UserProps> {
 
   get updatedAt() {
     return this.props.updatedAt;
+  }
+
+  get deletedAt() {
+    return this.props.deletedAt;
+  }
+
+  set deletedAt(deletedAt: Date | null) {
+    this.props.deletedAt = deletedAt;
+    this.touch();
   }
 
   private static isValidEmail(email: string): boolean {
