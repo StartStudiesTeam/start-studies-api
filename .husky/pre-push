@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+case "$branch_name" in
+  main|develop)
+    exit 0
+    ;;
+esac
+
+pattern='^(feature|fix|hotfix|release|chore|refactor|perf|docs|ci|build)\/[a-z]+-[0-9]+-[a-z0-9]+(-[a-z0-9]+)*$'
+
+if ! printf '%s' "$branch_name" | grep -Eq "$pattern"; then
+  echo "Invalid branch name: '$branch_name'"
+  echo "Expected: type/ticket-description-in-kebab-case (e.g. feature/star-123-add-login-endpoint)"
+  exit 1
+fi
+
+exit 0
