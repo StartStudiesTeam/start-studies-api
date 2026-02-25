@@ -3,7 +3,7 @@
 branch_name=$(git rev-parse --abbrev-ref HEAD)
 
 case "$branch_name" in
-  main|develop)
+  main|development)
     exit 0
     ;;
 esac
