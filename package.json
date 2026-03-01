@@ -1,8 +1,8 @@
 {
   "name": "start-studies-api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
-  "author": "",
+  "author": "Ruan Brito <ruan.desenvolvedor@gmail.com>",
   "private": true,
   "packageManager": "pnpm@10.30.2",
   "license": "UNLICENSED",
@@ -23,7 +23,8 @@
     "prepare": "husky",
     "commit": "cz",
     "release": "semantic-release",
-    "release:dry": "semantic-release --dry-run --no-ci"
+    "release:dry": "semantic-release --dry-run --no-ci",
+    "release:preview": "TRAVIS=true TRAVIS_BRANCH=\"$(git branch --show-current)\" TRAVIS_PULL_REQUEST=false semantic-release --dry-run --no-ci --repository-url \"file://$(pwd)\" --branches \"$(git branch --show-current)\" --plugins @semantic-release/commit-analyzer --plugins @semantic-release/release-notes-generator"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -49,6 +50,7 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.6",
+    "@semantic-release/npm": "^13.1.4",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
     "@types/node": "^20.3.1",
