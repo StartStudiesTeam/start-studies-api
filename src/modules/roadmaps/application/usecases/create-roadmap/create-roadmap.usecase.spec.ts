@@ -7,8 +7,8 @@ import { User } from '@/src/modules/users/domain/user';
 import { Roadmap } from '../../../domain/roadmap';
 import { RoadmapCreationUserNotFoundError } from '../../../domain/errors/roadmap-creation-user-not-found-error';
 import { RoadmapCreationUserDeletedError } from '../../../domain/errors/roadmap-creation-user-deleted-error';
-import { InvalidRoadmapDataError } from '../../../domain/errors/invalid-roadmap-data-error';
 import { RoadmapCreationPersistenceError } from '../../../domain/errors/roadmap-creation-persistence-error';
+import { RoadmapInvalidDataError } from '../../../domain/errors/roadmap-invalid-data-error';
 
 describe('CreateRoadmapUseCase', () => {
   let useCase: CreateRoadmapUseCase;
@@ -133,7 +133,7 @@ describe('CreateRoadmapUseCase', () => {
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidRoadmapDataError);
+      expect(result.value).toBeInstanceOf(RoadmapInvalidDataError);
     }
     expect(roadmapRepository.create).not.toHaveBeenCalled();
   });

@@ -7,14 +7,14 @@ import { CreateRoadmapUseCaseInput } from './dto/create-roadmap.input.dto';
 import { CreateRoadmapUseCaseOutput } from './dto/create-roadmap.output.dto';
 import { RoadmapCreationUserNotFoundError } from '../../../domain/errors/roadmap-creation-user-not-found-error';
 import { RoadmapsMapper } from '../../../infra/mappers/roadmaps.mapper';
+import { RoadmapInvalidDataError } from '../../../domain/errors/roadmap-invalid-data-error';
 import { RoadmapCreationUserDeletedError } from '../../../domain/errors/roadmap-creation-user-deleted-error';
-import { InvalidRoadmapDataError } from '../../../domain/errors/invalid-roadmap-data-error';
 import { RoadmapCreationPersistenceError } from '../../../domain/errors/roadmap-creation-persistence-error';
 
 type CreateRoadmapUseCaseError =
   | RoadmapCreationUserNotFoundError
   | RoadmapCreationUserDeletedError
-  | InvalidRoadmapDataError
+  | RoadmapInvalidDataError
   | RoadmapCreationPersistenceError;
 
 @Injectable()
