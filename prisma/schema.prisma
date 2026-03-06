@@ -7,20 +7,39 @@ datasource db {
 }
 
 model User {
-  id          String        @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
-  email       String        @unique
+  email       String         @unique
   password    String
-  nickname    String        @unique
-  dateOfBirth String? @map("date_of_birth")
+  nickname    String         @unique
+  dateOfBirth String?        @map("date_of_birth")
   gender      String?
   phone       String?
-  status      String    @default("active")
-  userType    String @map("user_type")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  status      String         @default("active")
+  userType    String         @map("user_type")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime?        @updatedAt @map("updated_at")
+  deletedAt DateTime?        @map("deleted_at")
+
+  roadmaps    Roadmap[]
 
   @@index([status], map: "users_status_idx")
   @@map("users")
+}
+
+model Roadmap {
+  id            String       @id @default(uuid())
+  title         String       @db.VarChar(50)
+  description   String       @db.VarChar(100)
+  userId        String       @map("user_id")
+  status        String       @default("draft")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime?    @updatedAt @map("updated_at")
+  deletedAt     DateTime?    @map("deleted_at")
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId], map: "roadmaps_user_id_idx")
+  @@index([status], map: "roadmaps_status_idx")
+  @@map("roadmaps")
 }
