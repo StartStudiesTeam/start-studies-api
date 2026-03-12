@@ -17,4 +17,16 @@ export class PrismaRoadmapRepository extends RoadmapRepository {
 
     return PrismaRoadmapMapper.toEntity(createdRoadmap);
   }
+
+  async findById(id: string): Promise<Roadmap | null> {
+    const roadmap = await this.prismaService.roadmap.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!roadmap) return null;
+
+    return PrismaRoadmapMapper.toEntity(roadmap);
+  }
 }
