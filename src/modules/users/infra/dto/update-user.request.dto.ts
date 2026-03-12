@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
+  MaxLength,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -21,6 +22,7 @@ export class UpdateUserRequestDto {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
+  @MaxLength(30)
   @ApiPropertyOptional({
     description: 'Nickname of user',
     example: 'maquinadinho',
@@ -30,6 +32,7 @@ export class UpdateUserRequestDto {
   @IsEmail()
   @IsOptional()
   @IsNotEmpty()
+  @MaxLength(254)
   @ApiPropertyOptional({
     description: 'User mail',
     example: 'bolinha@example.com',
