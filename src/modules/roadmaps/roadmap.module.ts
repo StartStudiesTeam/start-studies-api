@@ -4,6 +4,7 @@ import { UserRepository } from '../users/domain/repositories/user-repository';
 import { PrismaUserRepository } from '@/src/infra/database/prisma/users/prisma-user.repository';
 import { RoadmapRepository } from './domain/repositories/roadmap-repository';
 import { CreateRoadmapUseCase } from './application/usecases/create-roadmap/create-roadmap.usecase';
+import { FetchRoadmapUseCase } from './application/usecases/fetch-roadmap/fetch-roadmap.usecase';
 import { RoadmapsController } from './infra/nestjs/controllers/roadmaps.controller';
 import { PrismaRoadmapRepository } from '@/src/infra/database/prisma/roadmaps/prisma-roadmap.repository';
 
@@ -12,6 +13,7 @@ import { PrismaRoadmapRepository } from '@/src/infra/database/prisma/roadmaps/pr
   controllers: [RoadmapsController],
   providers: [
     CreateRoadmapUseCase,
+    FetchRoadmapUseCase,
     {
       provide: UserRepository,
       useClass: PrismaUserRepository,
