@@ -339,6 +339,72 @@ describe('UsersController', () => {
     ).rejects.toThrow();
   });
 
+  it('should reject create user body when nickname exceeds 30 characters', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'body',
+      metatype: CreateUserRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          ...createUserDto,
+          nickname: 'a'.repeat(31),
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('should reject create user body when email exceeds 254 characters', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'body',
+      metatype: CreateUserRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          ...createUserDto,
+          email: `${'a'.repeat(243)}@example.com`,
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('should reject create user body when password exceeds 72 characters', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'body',
+      metatype: CreateUserRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          ...createUserDto,
+          password: 'a'.repeat(73),
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
+
   it('should reject negative pagination query params for search users', async () => {
     const pipe = new ValidationPipe({
       whitelist: true,
@@ -356,6 +422,50 @@ describe('UsersController', () => {
           filter: 'john',
           limit: '0',
           offset: '-1',
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('should reject update user body when nickname exceeds 30 characters', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'body',
+      metatype: UpdateUserRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          ...updateUserDto,
+          nickname: 'a'.repeat(31),
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('should reject update user body when email exceeds 254 characters', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    });
+    const metadata: ArgumentMetadata = {
+      type: 'body',
+      metatype: UpdateUserRequestDto,
+      data: '',
+    };
+
+    await expect(
+      pipe.transform(
+        {
+          ...updateUserDto,
+          email: `${'a'.repeat(243)}@example.com`,
         },
         metadata,
       ),

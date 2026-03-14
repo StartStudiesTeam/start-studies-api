@@ -3,6 +3,7 @@ import {
   IsDateString,
   IsEmail,
   IsEnum,
+  MaxLength,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -22,6 +23,7 @@ export class CreateUserRequestDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(30)
   @ApiProperty({
     description: 'Nickname of user',
     example: 'maquinadinho',
@@ -30,6 +32,7 @@ export class CreateUserRequestDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(72)
   @ApiProperty({
     description: 'user password',
     example: 'bolinha12345',
@@ -38,6 +41,7 @@ export class CreateUserRequestDto {
 
   @IsEmail()
   @IsNotEmpty()
+  @MaxLength(254)
   @ApiProperty({
     description: 'user mail',
     example: 'bolinha@example.com',
