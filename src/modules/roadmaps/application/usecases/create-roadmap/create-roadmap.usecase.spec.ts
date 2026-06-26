@@ -70,6 +70,7 @@ describe('CreateRoadmapUseCase', () => {
     roadmapRepository = {
       create: jest.fn(),
       findById: jest.fn(),
+      searchByFilters: jest.fn(),
     } as jest.Mocked<RoadmapRepository>;
 
     useCase = new CreateRoadmapUseCase(userRepository, roadmapRepository);

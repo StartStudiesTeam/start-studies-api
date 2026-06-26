@@ -1,4 +1,4 @@
-import { SearchUsersQuery } from '../types/search-users-query.type';
+import { SearchQuery } from '@/src/common/types/pagination/search-users-query.type';
 import { PaginatedUsersResult } from '../types/paginated-users-result.type';
 import { User } from '../user';
 
@@ -9,7 +9,5 @@ export abstract class UserRepository {
   abstract findUniqueByEmail(email: string): Promise<User | null>;
   abstract findByNickname(nickname: string): Promise<User | null>;
   abstract delete(id: string): Promise<void>;
-  abstract searchByFilters(
-    query: SearchUsersQuery,
-  ): Promise<PaginatedUsersResult>;
+  abstract searchByFilters(query: SearchQuery): Promise<PaginatedUsersResult>;
 }

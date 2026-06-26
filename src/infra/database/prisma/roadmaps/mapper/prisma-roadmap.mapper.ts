@@ -35,4 +35,10 @@ export class PrismaRoadmapMapper {
       deletedAt: entity.deletedAt ?? undefined,
     };
   }
+
+  static toEntityList(rawRoadmaps: PrismaRoadmap[]): Roadmap[] {
+    return rawRoadmaps.map((rawRoadmap) =>
+      PrismaRoadmapMapper.toEntity(rawRoadmap),
+    );
+  }
 }

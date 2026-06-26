@@ -19,7 +19,7 @@ import {
 } from '../../application/usecases/search-users/dto/search-users.output.dto';
 import { UpdateUserUseCaseOutput } from '../../application/usecases/update-user/dto/update-user.output.dto';
 import { UpdateUserUseCaseInput } from '../../application/usecases/update-user/dto/update-user.input.dto';
-import { SearchUsersQuery } from '../../domain/types/search-users-query.type';
+import { SearchQuery } from '@/src/common/types/pagination/search-users-query.type';
 import { PaginatedUsersResult } from '../../domain/types/paginated-users-result.type';
 import { DeleteUserUseCaseInput } from '../../application/usecases/delete-user/dto/delete-user.input.dto';
 
@@ -159,7 +159,7 @@ export class UsersMapper {
     };
   }
 
-  static mapToDomainQuery(input: SearchUsersUseCaseInput): SearchUsersQuery {
+  static mapToDomainQuery(input: SearchUsersUseCaseInput): SearchQuery {
     return {
       filter: input.filter,
       limit: input.limit ?? 20,
