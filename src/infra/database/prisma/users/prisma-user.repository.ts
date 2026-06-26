@@ -3,7 +3,7 @@ import { UserRepository } from '@/src/modules/users/domain/repositories/user-rep
 import { PrismaService } from '../prisma.service';
 import { User } from '@/src/modules/users/domain/user';
 import { PrismaUserMapper } from './mapper/prisma-user.mapper';
-import { SearchUsersQuery } from '@/src/modules/users/domain/types/search-users-query.type';
+import { SearchQuery } from '@/src/common/types/pagination/search-users-query.type';
 import { PaginatedUsersResult } from '@/src/modules/users/domain/types/paginated-users-result.type';
 import { UserStatusEnum } from '@/src/modules/users/domain/enums/user-status.enum';
 
@@ -51,9 +51,7 @@ export class PrismaUserRepository extends UserRepository {
     return PrismaUserMapper.toEntity(createdUser);
   }
 
-  async searchByFilters(
-    query: SearchUsersQuery,
-  ): Promise<PaginatedUsersResult> {
+  async searchByFilters(query: SearchQuery): Promise<PaginatedUsersResult> {
     const normalizedFilter = query.filter?.trim();
     const where = normalizedFilter
       ? {
